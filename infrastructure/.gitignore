@@ -1,0 +1,12 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+
+# Go-specific files
+vendor/
+.DS_Store
+./infrastructure/.terraform/providers/registry.terraform.io/hashicorp/aws/5.65.0/windows_amd64/terraform-provider-aws_v5.65.0_x5.exe
+.terraform
