@@ -1,0 +1,19 @@
+# Pull the Jenkins LTS image
+docker pull jenkins/jenkins:lts
+
+# Create a directory for Jenkins home
+mkdir -p jenkins_home
+
+# Run the Jenkins container
+docker run -d -p 8080:8080 -p 50000:50000 -v $(pwd)/jenkins_home:/var/jenkins_home --name jenkins jenkins/jenkins:lts
+
+# Wait for Jenkins to start up
+echo "Waiting for Jenkins to start..."
+sleep 30  
+
+# Get the initial admin password
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+# run this file
+# chmod +x setup_jenkins.sh
+# ./setup_jenkins.sh
