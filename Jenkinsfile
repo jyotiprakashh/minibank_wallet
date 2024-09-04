@@ -4,8 +4,8 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/jyotiprakashh/minibank_wallet'
-            }https:
+                git 'https://github.com/jyotiprakashh/minibank_wallet.git'
+            }
         }
         stage('Build') {
             steps {
