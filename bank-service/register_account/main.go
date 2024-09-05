@@ -1,54 +1,71 @@
+// register-account-service.go
 package main
 
 import (
-    "github.com/gin-gonic/gin"
-    "golang.org/x/crypto/bcrypt"
-    "gorm.io/driver/postgres"
-    "gorm.io/gorm"
-    "net/http"
+	"encoding/json"
+	"log"
+	"github.com/IBM/sarama"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Account struct {
-    ID       uint   `json:"id" gorm:"primaryKey"`
-    Name     string `json:"name"`
-    Email    string `json:"email" gorm:"unique"`
-    Password string `json:"-"`
+	ID       uint   `json:"id" gorm:"primaryKey"`
+	Name     string `json:"name"`
+	Email    string `json:"email" gorm:"unique"`
+	Password string `json:"-"`
 }
 
 var db *gorm.DB
 
 func initDB() {
-    dsn := "host=localhost user=postgres password=password dbname=bank port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-    var err error
-    db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-    if err != nil {
-        panic("failed to connect database")
-    }
+	dsn := "host=terraform-20240902193604832600000001.cjskccquwmmt.us-east-1.rds.amazonaws.com user=jyoti password=12345789 dbname=terraform-20240902193604832600000001 port=5432 sslmode=require TimeZone=Asia/Shanghai"
+	var err error
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
 
-    db.AutoMigrate(&Account{})
+	db.AutoMigrate(&Account{})
 }
 
-func registerAccount(c *gin.Context) {
-    var account Account
-    if err := c.ShouldBindJSON(&account); err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-        return
-    }
+func processRegisterAccount(msg *sarama.ConsumerMessage) {
+	var account Account
+	err := json.Unmarshal(msg.Value, &account)
+	if err != nil {
+		log.Printf("Error parsing message: %v", err)
+		return
+	}
 
-    hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-        return
-    }
-    account.Password = string(hashedPassword)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(account.Password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Printf("Failed to hash password: %v", err)
+		return
+	}
+	account.Password = string(hashedPassword)
 
-    db.Create(&account)
-    c.JSON(http.StatusOK, gin.H{"message": "Account registered successfully!"})
+	db.Create(&account)
+	log.Printf("Account registered successfully for email: %s", account.Email)
 }
 
 func main() {
-    initDB()
-    r := gin.Default()
-    r.POST("/register", registerAccount)
-    r.Run(":8080")
+	initDB()
+
+	config := sarama.NewConfig()
+	consumer, err := sarama.NewConsumer([]string{"localhost:9092"}, config)
+	if err != nil {
+		log.Fatalf("Error creating Kafka consumer: %v", err)
+	}
+	defer consumer.Close()
+
+	partitionConsumer, err := consumer.ConsumePartition("register-account", 0, sarama.OffsetNewest)
+	if err != nil {
+		log.Fatalf("Error starting consumer for partition: %v", err)
+	}
+	defer partitionConsumer.Close()
+
+	for msg := range partitionConsumer.Messages() {
+		processRegisterAccount(msg)
+	}
 }

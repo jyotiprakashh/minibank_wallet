@@ -10,3 +10,26 @@ services:
     volumes:
       - ./jenkins_home:/var/jenkins_home
     restart: unless-stopped
+
+  zookeeper:
+    image: zookeeper:3.5
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: wurstmeister/kafka:2.13-2.7.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    expose:
+     - "9093"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper

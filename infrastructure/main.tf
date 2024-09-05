@@ -10,7 +10,7 @@ resource "aws_vpc" "main_vpc" {
   }
 }
 
-# Subnet in AZ 1
+
 resource "aws_subnet" "public_subnet_1" {
   vpc_id     = aws_vpc.main_vpc.id
   cidr_block = "10.0.10.0/24" 
@@ -29,7 +29,6 @@ resource "aws_subnet" "private_subnet_1" {
   }
 }
 
-# Subnet in AZ 2
 resource "aws_subnet" "public_subnet_2" {
   vpc_id     = aws_vpc.main_vpc.id
   cidr_block = "10.0.12.0/24" 
@@ -48,7 +47,6 @@ resource "aws_subnet" "private_subnet_2" {
   }
 }
 
-# Security Group for Database
 resource "aws_security_group" "db_sg" {
   vpc_id = aws_vpc.main_vpc.id
 
@@ -71,7 +69,6 @@ resource "aws_security_group" "db_sg" {
   }
 }
 
-# DB Subnet Group
 resource "aws_db_subnet_group" "main" {
   name       = "main-subnet-group"
   subnet_ids = [aws_subnet.private_subnet_1.id, aws_subnet.private_subnet_2.id]
@@ -81,7 +78,7 @@ resource "aws_db_subnet_group" "main" {
   }
 }
 
-# PostgreSQL Database
+# PostgreSQL 
 resource "aws_db_instance" "postgresql" {
   allocated_storage    = 20
   engine               = "postgres"

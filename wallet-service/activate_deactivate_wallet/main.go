@@ -15,7 +15,7 @@ type Wallet struct {
 var db *gorm.DB
 
 func initDB() {
-    dsn := "host=localhost user=postgres password=yourpassword dbname=wallet port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+    dsn := "host=terraform-20240902193604832600000001.cjskccquwmmt.us-east-1.rds.amazonaws.com user=jyoti password=12345789 dbname=terraform-20240902193604832600000001 port=5432 sslmode=require TimeZone=Asia/Shanghai"    
     var err error
     db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
     if err != nil {
