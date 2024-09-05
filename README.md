@@ -84,7 +84,7 @@ To stop and remove the Docker containers, use:
 docker-compose down
 ```
 
-##Access Jenkins
+## Access Jenkins
 Open web browser and go to `http://localhost:8080`.
 Enter the initial admin password, which can be obtained by running:
 ```bash
